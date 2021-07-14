@@ -17,4 +17,4 @@ jobs:
       with:
         server: 157.245.109.240
         username: root
-        password: M<zWH9ygM%8}k5kv
+        password: 'M<zWH9ygM%8}k5kv'
