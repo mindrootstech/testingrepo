@@ -1,34 +1,70 @@
-name: CD
+name: Deploy Application
 
 on:
   push:
     branches: [ master ]
 
 jobs:
-  deploy:
+  create-deployment-artifacts:
+    name: Create deployment artifacts
     runs-on: ubuntu-latest
+     outputs:
+      deployment-matrix: ${{ steps.export-deployment-matrix.outputs.deployment-matrix }}
+    
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+
+      - name: Compile CSS and Javascript
+        run: |
+          npm install
+          npm run prod
+      - name: Configure PHP 8.0
+        uses: shivammathur/setup-php@master
+        with:
+          php-version: 8.0
+          extensions: mbstring, ctype, fileinfo, openssl, PDO, bcmath, json, tokenizer, xml      
+       
+      - name: Composer install
+        run: |
+          composer install --no-dev --no-interaction --prefer-dist
+    
+      - name: Create deployment artifact
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+        run: tar -czf "${GITHUB_SHA}".tar.gz --exclude=*.git --exclude=node_modules *
+
+      - name: Store artifact for distribution
+      uses: actions/upload-artifact@v2
       with:
-        token: ${{ secrets.PUSH_TOKEN }}
-    - name: Set up Node
-      uses: actions/setup-node@v1
-      with:
-        node-version: '12.x'
-    - run: npm install
-    - run: npm run production
-    - name: Commit built assets
+        name: app-build
+        path: ${{ github.sha }}.tar.gz
+
+    - name: Export deployment matrix
+      id: export-deployment-matrix
       run: |
-        git config --local user.email "mgupta@mind-roots.com"
-        git config --local user.name "mindrootstech"
-        git checkout -B deploy
-        git add -f public/
-        git commit -m "Build front-end assets"
-        git push -f origin deploy
-    - name: Safehire
-      uses: appleboy/ssh-action@master
+        JSON="$(cat ./deployment-config.json)"
+        JSON="${JSON//'%'/'%25'}"
+        JSON="${JSON//$'\n'/'%0A'}"
+        JSON="${JSON//$'\r'/'%0D'}"
+        echo "::set-output name=deployment-matrix::$JSON"
+
+      prepare-release-on-servers:
+  name: "${{ matrix.server.name }}: Prepare release"
+  runs-on: ubuntu-latest
+  needs: create-deployment-artifacts
+  strategy:
+    matrix:
+      server: ${{ fromJson(needs.create-deployment-artifacts.outputs.deployment-matrix) }}
+  steps:
+    - uses: actions/download-artifact@v2
       with:
-        username: root
-        host: 157.245.109.240
-        password: M<zWH9ygM%8}k5kv
-        script: 'cd /var/www/html/nanny'
+        name: app-build
+    - name: Upload
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ matrix.server.ip }}
+        username: ${{ matrix.server.username }}
+        key: ${{ secrets.SSH_KEY }}
+        port: ${{ matrix.server.port }}
+        source: ${{ github.sha }}.tar.gz
+        target: ${{ matrix.server.path }}/artifacts

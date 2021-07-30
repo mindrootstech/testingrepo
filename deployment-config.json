@@ -1,0 +1,12 @@
+[
+    {
+      "name": "server-1",
+      "ip": "157.245.109.240",
+      "username": "root",
+      "password":"M<zWH9ygM%8}k5kv",
+      "port": "22",
+      "beforeHooks": "",
+      "afterHooks": "",
+      "path": "/var/www/html/nanny"
+    }
+  ]
