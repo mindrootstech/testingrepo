@@ -31,4 +31,4 @@ jobs:
         username: root
         host: 157.245.109.240
         password: M<zWH9ygM%8}k5kv
-        script: 'cd /var/www/html/nanny'
+        script: 'cd /var/www/html/nanny '
