@@ -5,7 +5,7 @@
       "username": "root",
       "password":"M<zWH9ygM%8}k5kv",
       "port": "22",
-      "beforeHooks": "echo $GITH",
+      "beforeHooks": "CD $RELEASE_PATH",
       "afterHooks": "",
       "path": "/var/www/html/nanny"
     }
