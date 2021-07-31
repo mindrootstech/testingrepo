@@ -20,7 +20,7 @@
               password: M<zWH9ygM%8}k5kv
     
               script: |
-                cd /home/app/public_html
+                cd /var/www/html/nanny
                 
                 php artisan down
                 
