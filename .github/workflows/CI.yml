@@ -25,7 +25,7 @@
                 php artisan down
                 
                 git checkout -f
-                git branch -u origin/dev
+                git branch -u origin/master
                 git pull
                 
                 composer install --optimize-autoloader --no-dev
