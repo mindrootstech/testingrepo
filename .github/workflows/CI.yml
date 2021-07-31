@@ -10,7 +10,7 @@
           - name: Checkout
             uses: actions/checkout@v2
     
-          - name: Deployment
+          - name: master
     
             uses: appleboy/ssh-action@master
     
